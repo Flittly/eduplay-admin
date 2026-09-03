@@ -6,6 +6,7 @@ import {
   Users
 } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+import type { AdminUser } from "../types";
 
 const navItems = [
   { to: "/dashboard", label: "数据概览", icon: LayoutDashboard },
@@ -14,7 +15,12 @@ const navItems = [
   { to: "/codes", label: "兑换码", icon: Ticket }
 ];
 
-export default function AdminLayout() {
+interface AdminLayoutProps {
+  user: AdminUser;
+  onLogout: () => void;
+}
+
+export default function AdminLayout({ user, onLogout }: AdminLayoutProps) {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
@@ -44,10 +50,14 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        <button className="logout-button" type="button">
-          <LogOut size={17} />
-          退出登录
-        </button>
+        <div className="admin-user">
+          <strong>{user.nickname}</strong>
+          <span>{user.username}</span>
+          <button className="logout-button" type="button" onClick={onLogout}>
+            <LogOut size={17} />
+            退出登录
+          </button>
+        </div>
       </aside>
 
       <main className="admin-main">
@@ -56,4 +66,3 @@ export default function AdminLayout() {
     </div>
   );
 }
-

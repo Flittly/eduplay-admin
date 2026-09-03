@@ -1,6 +1,24 @@
 import { Boxes, Ticket, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { adminStats } from "../api";
+import type { AdminStats } from "../types";
 
-export default function DashboardPage() {
+interface DashboardPageProps {
+  token: string;
+}
+
+export default function DashboardPage({ token }: DashboardPageProps) {
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    adminStats(token)
+      .then(setStats)
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "加载统计失败")
+      );
+  }, [token]);
+
   return (
     <div className="admin-page">
       <header className="page-heading">
@@ -10,35 +28,44 @@ export default function DashboardPage() {
         </div>
       </header>
 
+      {error && <p className="login-error">{error}</p>}
+
       <section className="stat-grid">
         <article className="neu-card">
           <div className="stat-icon">
             <Users size={22} />
           </div>
           <span>注册教师</span>
-          <strong>128</strong>
+          <strong>{stats?.teacherTotal ?? "-"}</strong>
+          <small>
+            正常 {stats?.teacherActive ?? "-"} / 禁用 {stats?.teacherDisabled ?? "-"}
+          </small>
+        </article>
+        <article className="neu-card">
+          <div className="stat-icon">
+            <Users size={22} />
+          </div>
+          <span>学生总数</span>
+          <strong>{stats?.studentTotal ?? "-"}</strong>
         </article>
         <article className="neu-card">
           <div className="stat-icon">
             <Boxes size={22} />
           </div>
           <span>已发布游戏</span>
-          <strong>12</strong>
+          <strong>{stats?.gameTotal ?? "-"}</strong>
         </article>
         <article className="neu-card">
           <div className="stat-icon">
             <Ticket size={22} />
           </div>
-          <span>已兑换激活码</span>
-          <strong>356</strong>
+          <span>兑换码</span>
+          <strong>{stats?.codeTotal ?? "-"}</strong>
+          <small>
+            已用 {stats?.codeUsed ?? "-"} / 未用 {stats?.codeUnused ?? "-"}
+          </small>
         </article>
-      </section>
-
-      <section className="neu-card chart-card">
-        <h2>平台状态</h2>
-        <p>当前功能为前端管理界面，后续接入真实统计接口。</p>
       </section>
     </div>
   );
 }
-

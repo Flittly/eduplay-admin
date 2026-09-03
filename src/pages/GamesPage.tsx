@@ -7,7 +7,11 @@ const initialGames = [
   { id: 3, name: "猜故事", code: "guess_story", version: "0.1.0", status: "草稿" }
 ];
 
-export default function GamesPage() {
+interface GamesPageProps {
+  token: string;
+}
+
+export default function GamesPage({ token }: GamesPageProps) {
   const [games] = useState(initialGames);
 
   return (
@@ -41,4 +45,3 @@ export default function GamesPage() {
     </div>
   );
 }
-

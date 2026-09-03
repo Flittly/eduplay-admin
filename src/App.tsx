@@ -15,7 +15,15 @@ const TOKEN_KEY = "eduplay-admin.token";
 export default function App() {
   const [user, setUser] = useState<AdminUser | null>(() => {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as AdminUser) : null;
+    if (!raw) {
+      return null;
+    }
+    try {
+      return JSON.parse(raw) as AdminUser;
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
   });
   const [token, setToken] = useState<string | null>(
     () => localStorage.getItem(TOKEN_KEY)
@@ -57,6 +65,18 @@ export default function App() {
 
   return (
     <Routes>
+      <Route
+        path="/"
+        element={
+          <Navigate to={user && token ? "/dashboard" : "/login"} replace />
+        }
+      />
+      <Route
+        path="*"
+        element={
+          <Navigate to={user && token ? "/dashboard" : "/login"} replace />
+        }
+      />
       <Route
         path="/login"
         element={

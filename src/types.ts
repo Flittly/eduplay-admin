@@ -41,3 +41,16 @@ export interface ActivationCode {
   usedAt: string | null;
   createdAt: string | null;
 }
+
+export interface AdminGame {
+  id: number;
+  gameCode: string;
+  name: string;
+  description: string | null;
+  priceCents: number;
+  status: string;
+  version: string;
+  entitlementCount: number;
+  installCount: number;
+  packageVersionCount: number;
+}

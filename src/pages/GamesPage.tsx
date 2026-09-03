@@ -1,18 +1,93 @@
-import { Plus } from "lucide-react";
-import { useState } from "react";
-
-const initialGames = [
-  { id: 1, name: "行政区拼图", code: "province_puzzle", version: "0.1.0", status: "已上架" },
-  { id: 2, name: "猜省会", code: "guess_capital", version: "0.2.0", status: "已上架" },
-  { id: 3, name: "猜故事", code: "guess_story", version: "0.1.0", status: "草稿" }
-];
+import { Plus, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  adminCreateGame,
+  adminGames,
+  adminUpdateGameStatus,
+  adminUploadGamePackage
+} from "../api";
+import type { AdminGame } from "../types";
 
 interface GamesPageProps {
   token: string;
 }
 
 export default function GamesPage({ token }: GamesPageProps) {
-  const [games] = useState(initialGames);
+  const [games, setGames] = useState<AdminGame[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [uploadTarget, setUploadTarget] = useState<AdminGame | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+
+  const [newCode, setNewCode] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newPrice, setNewPrice] = useState(990);
+
+  async function load() {
+    setLoading(true);
+    try {
+      setGames(await adminGames(token));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "加载游戏失败");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+  }, [token]);
+
+  async function createGame() {
+    setError("");
+    try {
+      await adminCreateGame(token, {
+        gameCode: newCode,
+        name: newName,
+        description: newDescription,
+        priceCents: newPrice
+      });
+      setShowCreate(false);
+      setNewCode("");
+      setNewName("");
+      setNewDescription("");
+      setNewPrice(990);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "创建游戏失败");
+    }
+  }
+
+  async function toggleStatus(game: AdminGame) {
+    setError("");
+    try {
+      await adminUpdateGameStatus(
+        token,
+        game.id,
+        game.status === "ACTIVE" ? "DRAFT" : "ACTIVE"
+      );
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "更新状态失败");
+    }
+  }
+
+  async function uploadPackage() {
+    if (!uploadTarget || !file) {
+      return;
+    }
+    setError("");
+    try {
+      await adminUploadGamePackage(token, uploadTarget.gameCode, file);
+      setUploadTarget(null);
+      setFile(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "上传失败");
+    }
+  }
 
   return (
     <div className="admin-page">
@@ -21,27 +96,144 @@ export default function GamesPage({ token }: GamesPageProps) {
           <p className="eyebrow">GAMES</p>
           <h1>游戏管理</h1>
         </div>
-        <button className="neu-button" type="button">
+        <button className="neu-button" onClick={() => setShowCreate(true)}>
           <Plus size={17} />
           新建游戏
         </button>
       </header>
 
-      <section className="game-admin-grid">
-        {games.map((game) => (
-          <article key={game.id} className="neu-card">
-            <h2>{game.name}</h2>
-            <p>{game.code}</p>
-            <div className="game-meta">
-              <span>版本 {game.version}</span>
-              <span>{game.status}</span>
-            </div>
-            <button className="neu-button full" type="button">
-              管理版本
+      {error && <p className="login-error">{error}</p>}
+
+      {loading ? (
+        <p>正在加载游戏...</p>
+      ) : (
+        <section className="neu-card">
+          <div className="table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>游戏</th>
+                  <th>代码</th>
+                  <th>版本</th>
+                  <th>状态</th>
+                  <th>已拥有</th>
+                  <th>已安装</th>
+                  <th>版本数</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {games.map((game) => (
+                  <tr key={game.id}>
+                    <td>{game.name}</td>
+                    <td>{game.gameCode}</td>
+                    <td>{game.version}</td>
+                    <td>{game.status === "ACTIVE" ? "已上架" : "草稿"}</td>
+                    <td>{game.entitlementCount}</td>
+                    <td>{game.installCount}</td>
+                    <td>{game.packageVersionCount}</td>
+                    <td>
+                      <button
+                        className="neu-button small"
+                        onClick={() => toggleStatus(game)}
+                      >
+                        {game.status === "ACTIVE" ? "下架" : "上架"}
+                      </button>
+                      <button
+                        className="neu-button small"
+                        onClick={() => setUploadTarget(game)}
+                      >
+                        <Upload size={14} />
+                        上传插件包
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {showCreate && (
+        <div className="modal-mask">
+          <div className="modal-card">
+            <h2>新建游戏</h2>
+            <label>
+              游戏代码
+              <input
+                value={newCode}
+                onChange={(event) => setNewCode(event.target.value)}
+                placeholder="province_puzzle"
+              />
+            </label>
+            <label>
+              游戏名称
+              <input
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+                placeholder="行政区拼图"
+              />
+            </label>
+            <label>
+              描述
+              <input
+                value={newDescription}
+                onChange={(event) => setNewDescription(event.target.value)}
+              />
+            </label>
+            <label>
+              价格（分）
+              <input
+                type="number"
+                value={newPrice}
+                onChange={(event) => setNewPrice(Number(event.target.value))}
+              />
+            </label>
+            <button className="neu-button accent" onClick={createGame}>
+              创建
             </button>
-          </article>
-        ))}
-      </section>
+            <button className="neu-button" onClick={() => setShowCreate(false)}>
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+
+      {uploadTarget && (
+        <div className="modal-mask">
+          <div className="modal-card">
+            <h2>上传 {uploadTarget.name} 插件包</h2>
+            <p>插件包必须是包含 manifest.json 的 zip 文件。</p>
+            <label>
+              zip 文件
+              <input
+                type="file"
+                accept=".zip"
+                onChange={(event) =>
+                  setFile(event.target.files?.[0] ?? null)
+                }
+              />
+            </label>
+            <button
+              className="neu-button accent"
+              disabled={!file}
+              onClick={uploadPackage}
+            >
+              上传
+            </button>
+            <button
+              className="neu-button"
+              onClick={() => {
+                setUploadTarget(null);
+                setFile(null);
+              }}
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type {
   ActivationCode,
   AdminStats,
+  AdminGame,
   AdminUser,
   AuthResult,
   Teacher
@@ -9,9 +10,10 @@ import type {
 const BASE_URL = "/api/v1/admin";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const isFormData = options?.body instanceof FormData;
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(options?.headers ?? {})
     },
     ...options
@@ -117,3 +119,48 @@ export async function adminDownloadCodes(token: string) {
   URL.revokeObjectURL(url);
 }
 
+export function adminGames(token: string): Promise<AdminGame[]> {
+  return request<AdminGame[]>("/games", { headers: auth(token) });
+}
+
+export function adminCreateGame(
+  token: string,
+  payload: {
+    gameCode: string;
+    name: string;
+    description?: string;
+    priceCents?: number;
+  }
+): Promise<AdminGame> {
+  return request<AdminGame>("/games", {
+    method: "POST",
+    headers: auth(token),
+    body: JSON.stringify(payload)
+  });
+}
+
+export function adminUpdateGameStatus(
+  token: string,
+  gameId: number,
+  status: "DRAFT" | "ACTIVE"
+): Promise<AdminGame> {
+  return request<AdminGame>(`/games/${gameId}/status`, {
+    method: "PATCH",
+    headers: auth(token),
+    body: JSON.stringify({ status })
+  });
+}
+
+export function adminUploadGamePackage(
+  token: string,
+  gameCode: string,
+  file: File
+): Promise<AdminGame> {
+  const form = new FormData();
+  form.append("file", file);
+  return request<AdminGame>(`/games/${gameCode}/packages`, {
+    method: "POST",
+    headers: auth(token),
+    body: form
+  });
+}

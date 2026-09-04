@@ -12,11 +12,11 @@ const BASE_URL = "/api/v1/admin";
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const isFormData = options?.body instanceof FormData;
   const response = await fetch(`${BASE_URL}${path}`, {
+    ...options,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(options?.headers ?? {})
-    },
-    ...options
+    }
   });
   const body = (await response.json()) as {
     success: boolean;

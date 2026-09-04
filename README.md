@@ -1,6 +1,6 @@
 # EduPlay Admin
 
-EduPlay 管理后台。
+EduPlay 管理后台前端，对接独立的云端后端工程 [eduplay-server](E:/Self/workspace/eduplay-server)。
 
 ## 运行
 
@@ -15,7 +15,7 @@ npm run dev
 http://localhost:5174
 ```
 
-Vite 会把 `/api` 代理到后端：
+Vite 会把 `/api` 代理到 eduplay-server 后端：
 
 ```text
 http://localhost:18080

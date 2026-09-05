@@ -616,6 +616,37 @@ button {
   }
 }
 
+.tag-groups {
+  display: grid;
+  gap: 14px;
+  max-height: 50vh;
+  overflow: auto;
+  margin-bottom: 16px;
+}
+
+.tag-group {
+  border: 1px solid rgba(26, 26, 26, 0.2);
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
+.tag-group > strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.tag-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.tag-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 @media (max-width: 1000px) {
   body {
     min-width: 0;

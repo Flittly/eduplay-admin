@@ -1,12 +1,16 @@
-import { Plus, Upload } from "lucide-react";
+import { Download, Plus, Tags, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   adminCreateGame,
+  adminExportTaggedPackage,
+  adminGameTags,
   adminGames,
+  adminSetGameTags,
+  adminTags,
   adminUpdateGameStatus,
   adminUploadGamePackage
 } from "../api";
-import type { AdminGame } from "../types";
+import type { AdminGame, AdminTag } from "../types";
 
 interface GamesPageProps {
   token: string;
@@ -19,6 +23,10 @@ export default function GamesPage({ token }: GamesPageProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [uploadTarget, setUploadTarget] = useState<AdminGame | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [tagTarget, setTagTarget] = useState<AdminGame | null>(null);
+  const [allTags, setAllTags] = useState<AdminTag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [tagSaving, setTagSaving] = useState(false);
 
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
@@ -74,6 +82,15 @@ export default function GamesPage({ token }: GamesPageProps) {
     }
   }
 
+  async function exportTagged(game: AdminGame) {
+    setError("");
+    try {
+      await adminExportTaggedPackage(token, game.gameCode);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "导出失败");
+    }
+  }
+
   async function uploadPackage() {
     if (!uploadTarget || !file) {
       return;
@@ -88,6 +105,52 @@ export default function GamesPage({ token }: GamesPageProps) {
       setError(err instanceof Error ? err.message : "上传失败");
     }
   }
+
+  async function openTags(game: AdminGame) {
+    setError("");
+    try {
+      const [tags, current] = await Promise.all([
+        adminTags(token),
+        adminGameTags(token, game.id)
+      ]);
+      setAllTags(tags);
+      setSelectedTagIds(current.map((tag) => tag.id));
+      setTagTarget(game);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "加载标签失败");
+    }
+  }
+
+  async function saveTags() {
+    if (!tagTarget) {
+      return;
+    }
+    setTagSaving(true);
+    setError("");
+    try {
+      await adminSetGameTags(token, tagTarget.id, selectedTagIds);
+      setTagTarget(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "保存标签失败");
+    } finally {
+      setTagSaving(false);
+    }
+  }
+
+  function toggleTag(tagId: number) {
+    setSelectedTagIds((current) =>
+      current.includes(tagId)
+        ? current.filter((id) => id !== tagId)
+        : [...current, tagId]
+    );
+  }
+
+  const tagGroups = allTags.reduce<Record<string, AdminTag[]>>((groups, tag) => {
+    const list = groups[tag.category] ?? [];
+    list.push(tag);
+    groups[tag.category] = list;
+    return groups;
+  }, {});
 
   return (
     <div className="admin-page">
@@ -145,6 +208,20 @@ export default function GamesPage({ token }: GamesPageProps) {
                       >
                         <Upload size={14} />
                         上传插件包
+                      </button>
+                      <button
+                        className="neu-button small"
+                        onClick={() => openTags(game)}
+                      >
+                        <Tags size={14} />
+                        标签
+                      </button>
+                      <button
+                        className="neu-button small"
+                        onClick={() => exportTagged(game)}
+                      >
+                        <Download size={14} />
+                        导出zip
                       </button>
                     </td>
                   </tr>
@@ -228,6 +305,46 @@ export default function GamesPage({ token }: GamesPageProps) {
                 setUploadTarget(null);
                 setFile(null);
               }}
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
+
+      {tagTarget && (
+        <div className="modal-mask">
+          <div className="modal-card">
+            <h2>设置 {tagTarget.name} 的标签</h2>
+            <div className="tag-groups">
+              {Object.entries(tagGroups).map(([category, tags]) => (
+                <div key={category} className="tag-group">
+                  <strong>{category}</strong>
+                  <div className="tag-options">
+                    {tags.map((tag) => (
+                      <label key={tag.id} className="tag-check">
+                        <input
+                          type="checkbox"
+                          checked={selectedTagIds.includes(tag.id)}
+                          onChange={() => toggleTag(tag.id)}
+                        />
+                        {tag.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              className="neu-button accent"
+              disabled={tagSaving}
+              onClick={saveTags}
+            >
+              {tagSaving ? "保存中..." : "保存"}
+            </button>
+            <button
+              className="neu-button"
+              onClick={() => setTagTarget(null)}
             >
               取消
             </button>

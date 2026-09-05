@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   LogOut,
   Search,
+  Tags,
   Ticket,
   Users
 } from "lucide-react";
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/dashboard", label: "数据概览", icon: LayoutDashboard },
   { to: "/teachers", label: "教师管理", icon: Users },
   { to: "/games", label: "游戏管理", icon: Boxes },
+  { to: "/tags", label: "标签管理", icon: Tags },
   { to: "/codes", label: "兑换码", icon: Ticket }
 ];
 

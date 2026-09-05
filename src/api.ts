@@ -2,6 +2,7 @@ import type {
   ActivationCode,
   AdminStats,
   AdminGame,
+  AdminTag,
   AdminUser,
   AuthResult,
   Teacher
@@ -163,4 +164,61 @@ export function adminUploadGamePackage(
     headers: auth(token),
     body: form
   });
+}
+
+export function adminTags(token: string): Promise<AdminTag[]> {
+  return request<AdminTag[]>("/tags", { headers: auth(token) });
+}
+
+export function adminCreateTag(
+  token: string,
+  payload: {
+    category: string;
+    code: string;
+    name: string;
+    sortOrder?: number;
+  }
+): Promise<AdminTag> {
+  return request<AdminTag>("/tags", {
+    method: "POST",
+    headers: auth(token),
+    body: JSON.stringify(payload)
+  });
+}
+
+export function adminGameTags(
+  token: string,
+  gameId: number
+): Promise<AdminTag[]> {
+  return request<AdminTag[]>(`/games/${gameId}/tags`, {
+    headers: auth(token)
+  });
+}
+
+export function adminSetGameTags(
+  token: string,
+  gameId: number,
+  tagIds: number[]
+): Promise<AdminTag[]> {
+  return request<AdminTag[]>(`/games/${gameId}/tags`, {
+    method: "PUT",
+    headers: auth(token),
+    body: JSON.stringify({ tagIds })
+  });
+}
+
+export async function adminExportTaggedPackage(token: string, gameCode: string) {
+  const response = await fetch(`${BASE_URL}/games/${gameCode}/package/export`, {
+    headers: auth(token)
+  });
+  if (!response.ok) {
+    throw new Error("导出失败");
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${gameCode}-tagged.zip`;
+  link.click();
+  URL.revokeObjectURL(url);
 }

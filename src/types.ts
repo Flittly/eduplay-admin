@@ -54,3 +54,12 @@ export interface AdminGame {
   installCount: number;
   packageVersionCount: number;
 }
+
+export interface AdminTag {
+  id: number;
+  category: string;
+  code: string;
+  name: string;
+  status: string;
+  sortOrder: number;
+}

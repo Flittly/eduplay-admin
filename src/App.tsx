@@ -6,6 +6,7 @@ import CodesPage from "./pages/CodesPage";
 import DashboardPage from "./pages/DashboardPage";
 import GamesPage from "./pages/GamesPage";
 import LoginPage from "./pages/LoginPage";
+import TagsPage from "./pages/TagsPage";
 import TeachersPage from "./pages/TeachersPage";
 import type { AdminUser } from "./types";
 
@@ -100,6 +101,7 @@ export default function App() {
         <Route path="/teachers" element={<TeachersPage token={token ?? ""} />} />
         <Route path="/games" element={<GamesPage token={token ?? ""} />} />
         <Route path="/codes" element={<CodesPage token={token ?? ""} />} />
+        <Route path="/tags" element={<TagsPage token={token ?? ""} />} />
       </Route>
     </Routes>
   );

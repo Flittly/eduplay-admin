@@ -196,33 +196,35 @@ export default function GamesPage({ token }: GamesPageProps) {
                     <td>{game.installCount}</td>
                     <td>{game.packageVersionCount}</td>
                     <td>
-                      <button
-                        className="neu-button small"
-                        onClick={() => toggleStatus(game)}
-                      >
-                        {game.status === "ACTIVE" ? "下架" : "上架"}
-                      </button>
-                      <button
-                        className="neu-button small"
-                        onClick={() => setUploadTarget(game)}
-                      >
-                        <Upload size={14} />
-                        上传插件包
-                      </button>
-                      <button
-                        className="neu-button small"
-                        onClick={() => openTags(game)}
-                      >
-                        <Tags size={14} />
-                        标签
-                      </button>
-                      <button
-                        className="neu-button small"
-                        onClick={() => exportTagged(game)}
-                      >
-                        <Download size={14} />
-                        导出zip
-                      </button>
+                      <div className="row-actions">
+                        <button
+                          className="neu-button small"
+                          onClick={() => toggleStatus(game)}
+                        >
+                          {game.status === "ACTIVE" ? "下架" : "上架"}
+                        </button>
+                        <button
+                          className="neu-button small"
+                          onClick={() => setUploadTarget(game)}
+                        >
+                          <Upload size={14} />
+                          上传插件包
+                        </button>
+                        <button
+                          className="neu-button small"
+                          onClick={() => openTags(game)}
+                        >
+                          <Tags size={14} />
+                          标签
+                        </button>
+                        <button
+                          className="neu-button small"
+                          onClick={() => exportTagged(game)}
+                        >
+                          <Download size={14} />
+                          导出zip
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

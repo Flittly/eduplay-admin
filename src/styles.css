@@ -486,6 +486,21 @@ button {
   background: #f9fafb;
 }
 
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  white-space: nowrap;
+}
+
+.row-actions .neu-button {
+  height: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 1;
+}
+
 .game-admin-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
